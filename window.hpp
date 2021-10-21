@@ -6,6 +6,12 @@
 
 #include "rect.hpp"
 #include "mouse_event.hpp"
+#include "bidirectional_list.hpp"
+
+template<typename T>
+bool operator==(const std::unique_ptr<T>& uniquePtr, const T* ptr) {
+    return (uniquePtr.get() == ptr);
+}
 
 // todo: Rename to Object?
 class Window {
@@ -46,6 +52,6 @@ class Window {
 
     Window* _parent{ nullptr };
     // todo: use more convenient containers
-    std::vector<std::unique_ptr<Window>> _childs;  // Bidirectional list?
+    BidirectionalList<std::unique_ptr<Window>> _childs;
     std::set<Window*> _toKillQueue;  // Queue?
 };

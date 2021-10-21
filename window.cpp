@@ -1,21 +1,21 @@
 #include "window.hpp"
 
-
 Window::Window(const Rect& rect, char fill) : _rect(rect), _fillChar(fill) {}
 Window::~Window() {}
 
 void Window::tick() {
-    for (auto const& windowToKill : _toKillQueue) {
-        for (int i = _childs.size() - 1; i >= 0; --i) {
-            if (windowToKill == _childs[i].get()) {
-                _childs.erase(_childs.begin() + i);
+    for (const auto& windowToKill : _toKillQueue) {
+        for (const auto& node : _childs) {
+            auto& child = node->value;
+            if (windowToKill == child.get()) {
+                _childs.erase(node);
             }
         }
     }
     _toKillQueue.clear();
 
-    for (auto& child : _childs) {
-        child->tick();
+    for (const auto& child : _childs) {
+        child->value->tick();
     }
 }
 
@@ -24,7 +24,7 @@ void Window::setParent(Window* parent) {
 }
 void Window::addWindow(Window* window) {
     window->setParent(this);
-    _childs.insert(_childs.begin(), std::unique_ptr<Window>(window));
+    _childs.pushFront(std::unique_ptr<Window>(window));
 }
 void Window::addToKillQueue(Window* window) {
     _toKillQueue.insert(window);
@@ -41,7 +41,8 @@ Coordinates Window::globalCoordsToLocal(const Coordinates& coords) const {
 }
 
 Window* Window::getChildByCoords(const Coordinates& coords) {
-    for (const auto& child : _childs) {
+    for (const auto& node : _childs) {
+        auto& child = node->value;
         if (child->getRect().contains(globalCoordsToLocal(coords))) {
             return child.get();
         }
@@ -95,7 +96,8 @@ void Window::resize(Size size) {
 }
 
 char Window::getPixel(const Coordinates& coords) const {
-    for (const auto& child : _childs) {
+    for (const auto& node : _childs) {
+        auto& child = node->value;
         if (child->getRect().contains(coords)) {
             return child->getPixel(coords - child->getRect().getCoords());
         }
@@ -104,7 +106,12 @@ char Window::getPixel(const Coordinates& coords) const {
 }
 
 void Window::processMouseEvent(const MouseEvent& event) {
-    for (const auto& child : _childs) {
+    if (event.isClick()) {
+        _childs.moveToBegin(_childs.find(getChildByCoords(event.getCoords())));
+    }
+
+    for (const auto& node : _childs) {
+        auto& child = node->value;
         child->processMouseEvent(event);
     }
 }
