@@ -8,6 +8,7 @@
 #include "mouse_event.hpp"
 #include "bidirectional_list.hpp"
 
+// todo: refactor
 template<typename T>
 bool operator==(const std::unique_ptr<T>& uniquePtr, const T* ptr) {
     return (uniquePtr.get() == ptr);
@@ -24,13 +25,14 @@ class Window {
     void setParent(Window* parent);
     void addWindow(Window* window);
     void addToKillQueue(Window* window);
-    void kill();
+    virtual void kill();
 
     virtual Coordinates localCoordsToGlobal(const Coordinates& coords) const;
     virtual Coordinates globalCoordsToLocal(const Coordinates& coords) const;
 
     Window* getChildByCoords(const Coordinates& coords);
     bool isCliked(Window* window, const Coordinates& coords);
+    void moveToFront();
 
     Rect getRect() const;
     Size getSize() const;
@@ -43,11 +45,16 @@ class Window {
     void moveTo(Coordinates coords);
     virtual void resize(Size size);
 
+    void hide();
+    void show();
+    bool isVisible() const;
+
     virtual char getPixel(const Coordinates& coords) const;
     virtual void processMouseEvent(const MouseEvent& event);
 
   private:
     Rect _rect;
+    bool _isVisible{ true };
     char _fillChar;  // temp
 
     Window* _parent{ nullptr };

@@ -65,6 +65,9 @@ bool Window::isCliked(Window* window, const Coordinates& coords) {
         return _parent->isCliked(window, coords);
     }
 }
+void Window::moveToFront() {
+    _parent->_childs.moveToBegin(_parent->_childs.find(this));
+}
 
 Rect Window::getRect() const {
     return _rect;
@@ -98,15 +101,30 @@ void Window::resize(Size size) {
 char Window::getPixel(const Coordinates& coords) const {
     for (const auto& node : _childs) {
         auto& child = node->value;
-        if (child->getRect().contains(coords)) {
+        if (child->isVisible() && child->getRect().contains(coords)) {
             return child->getPixel(coords - child->getRect().getCoords());
         }
     }
     return _fillChar;
 }
 
+void Window::hide() {
+    _isVisible = false;
+}
+void Window::show() {
+    _isVisible = true;
+}
+bool Window::isVisible() const {
+    return _isVisible;
+}
+
 void Window::processMouseEvent(const MouseEvent& event) {
+    if (!_isVisible) {
+        return;
+    }
+
     if (event.isClick()) {
+        // todo: Refactor using moveToFront()
         _childs.moveToBegin(_childs.find(getChildByCoords(event.getCoords())));
     }
 

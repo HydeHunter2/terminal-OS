@@ -131,7 +131,7 @@ class BidirectionalList {
     }
 
     void moveToBegin(Node* element) {
-        if (_size > 1) {
+        if (_size > 1 && element != nullptr) {
             extract(element);
             _front->_prev = element;
             element->_next = _front;

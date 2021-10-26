@@ -1,20 +1,33 @@
 #include "bordered_window.hpp"
 
-BorderedWindow::BorderedWindow(const Rect& rect) : Window(rect) {
+BorderedWindow::BorderedWindow(const Rect& rect, Taskbar* taskbar) : Window(rect) {
     // temp hardcode
     _innerWindow = new Window(Rect(Coordinates(1, 1), Size(getWidth() - 2, getHeight() - 2)), '#');
+    _icon = new Icon(this, Size(9, 5), {'.', '.', '.', '.', '.', '.', '.', '.', '.',
+                                        '.', '.', '.', '.', '.', '.', '.', '.', '.',
+                                        '.', '.', '.', '.', '.', '.', '.', '.', '.',
+                                        '.', '.', '.', '.', '.', '.', '.', '.', '.',
+                                        '.', '.', '.', '.', '.', '.', '.', '.', '.'});
 
     addWindow(_innerWindow);
+
+    // move to BorderedWindow::connectWithTaskbar?
+    if (taskbar) {
+        taskbar->addIcon(_icon);
+    }
 }
 
 char BorderedWindow::getPixel(const Coordinates& coords) const {
     bool isExit = (coords.x == 1 && coords.y == 1);
+    bool isHide = (coords.x == 3 && coords.y == 1);
     bool isHorizontalLine = (coords.y == 0 || coords.y == 2 || coords.y == getHeight() - 1);
     bool isVerticalLine = (coords.x == 0 || coords.x == getWidth() - 1);
     bool isSpace = coords.y == 1;
 
     if (isExit) {
         return 'X';
+    } else if (isHide) {
+        return 'H';
     } else if (isHorizontalLine){
         return '-';
     } else if (isVerticalLine) {
@@ -27,6 +40,10 @@ char BorderedWindow::getPixel(const Coordinates& coords) const {
 }
 
 void BorderedWindow::processMouseEvent(const MouseEvent& mouseEvent) {
+    if (!isVisible()) {
+        return;
+    }
+
     auto localCoords = globalCoordsToLocal(mouseEvent.getCoords());
 
     if (mouseEvent.isClick()) {
@@ -41,9 +58,11 @@ void BorderedWindow::processMouseEvent(const MouseEvent& mouseEvent) {
             } else if (localCoords.y == 1) {
                 if (localCoords.x == 1) {
                     kill();
-                    return;
+                } else if (localCoords.x == 3) {
+                    hide();
+                } else {
+                    _dragOffset = localCoords;
                 }
-                _dragOffset = localCoords;
             }
             if (localCoords.y == 0) {
                 _resizingBorders.insert(Border::Up);
@@ -81,6 +100,10 @@ void BorderedWindow::processMouseEvent(const MouseEvent& mouseEvent) {
     }
 
     Window::processMouseEvent(mouseEvent);
+}
+void BorderedWindow::kill() {
+    _icon->kill();
+    Window::kill();
 }
 
 void BorderedWindow::resize(Size size) {

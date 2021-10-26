@@ -13,8 +13,8 @@ int main() {
     OperatingSystem OS({w, h});
 
     // temp hardcode
-    BorderedWindow* window1 = new BorderedWindow(Rect(15, 10, 50, 5));
-    BorderedWindow* window2 = new BorderedWindow(Rect(5, 5, 50, 15));
+    BorderedWindow* window1 = new BorderedWindow(Rect(15, 10, 50, 5), OS.getTaskbar());
+    BorderedWindow* window2 = new BorderedWindow(Rect(5, 5, 50, 15), OS.getTaskbar());
     OS.addWindow(window1);
     OS.addWindow(window2);
 

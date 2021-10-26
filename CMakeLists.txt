@@ -11,4 +11,6 @@ add_executable(terminal-OS main.cpp
                            mouse_event.cpp
                            rect.cpp
                            size.cpp
-                           coordinates.cpp)
+                           coordinates.cpp
+                           image.cpp
+                           icon.cpp)
