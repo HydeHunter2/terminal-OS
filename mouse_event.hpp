@@ -6,6 +6,7 @@ struct MouseEvent {
   public:
     enum Type {
         Click,
+        Unclick,
         Drag
     };
 
@@ -13,6 +14,7 @@ struct MouseEvent {
 
     Coordinates getCoords() const;
     bool isClick() const;
+    bool isUnclick() const;
     bool isDrag() const;
 
   private:

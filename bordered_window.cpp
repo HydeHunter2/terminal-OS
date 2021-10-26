@@ -46,10 +46,10 @@ void BorderedWindow::processMouseEvent(const MouseEvent& mouseEvent) {
 
     auto localCoords = globalCoordsToLocal(mouseEvent.getCoords());
 
-    if (mouseEvent.isClick()) {
+    if (mouseEvent.isUnclick()) {
         _resizingBorders.clear();
         _dragOffset = std::nullopt;
-
+    } else if (mouseEvent.isClick()) {
         if (isCliked(this, mouseEvent.getCoords())) {
             if (localCoords.x == 0) {
                 _resizingBorders.insert(Border::Left);

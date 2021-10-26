@@ -2,9 +2,20 @@
 #include <string>
 #include <chrono>
 #include <thread>
+#include <map>
 
 #include "operating_system.hpp"
 #include "bordered_window.hpp"
+
+// todo: Move time logic to some class
+using TimePoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
+
+TimePoint now() {
+    return std::chrono::high_resolution_clock::now();
+}
+int timeDifference(TimePoint firstPoint, TimePoint secondPoint) {
+    return std::abs(std::chrono::duration_cast<std::chrono::milliseconds>(secondPoint - firstPoint).count());
+}
 
 int main() {
     const int w = 200;
@@ -24,20 +35,18 @@ int main() {
     std::string input;
     while (true) {
         system("stty raw");
-        system("echo \"\e[?1002;1006;1015h\"");  // start observe mouse
-
-        std::getline(std::cin, input, char(27));
-        if (input.length() == 0) {
-            continue;
-        }
-
-        system("echo \"\e[?1002;1006;1015l\"");  // stop observe mouse
-        system("stty cooked");
+        std::cout << "\e[?1002;1006;1015h";  // start observe mouse
 
         std::vector<int> mouseData;
-
         int data = 0;
-        for (char c : input) {
+
+        char c;
+        auto startClickTime = now();
+        while ((c = getchar()) != 27) {  // todo: process keyboard keys
+            if (timeDifference(startClickTime, now()) > 100) {
+                break;
+            }
+
             if (c == ';') {
                 mouseData.push_back(data);
                 data = 0;
@@ -47,6 +56,13 @@ int main() {
             }
         }
         mouseData.push_back(data);
+
+        std::cout << "\e[?1002;1006;1015l";  // start observe mouse
+        system("stty cooked");
+
+        if (mouseData.size() != 3) {
+            continue;
+        }
 
         int mouseX = mouseData[1] - 1;
         int mouseY = mouseData[2] - 1;
@@ -59,8 +75,12 @@ int main() {
         system("bash -c \"clear && echo -n \"\e[3J\"\"");
         if (mouseX >= 0 && mouseX < w &&
             mouseY >= 0 || mouseY < h) {
-            auto type = (mouseData[0] == 32 ? MouseEvent::Type::Click : MouseEvent::Type::Drag);
-            OS.processMouseEvent({{mouseX, mouseY}, type});
+            static std::map<int, MouseEvent::Type> keyToType = {
+                {32, MouseEvent::Type::Click},
+                {35, MouseEvent::Type::Unclick},
+                {64, MouseEvent::Type::Drag},
+            };
+            OS.processMouseEvent({{mouseX, mouseY}, keyToType[mouseData[0]]});
         }
         OS.tick();
         OS.draw();

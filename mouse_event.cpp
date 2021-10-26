@@ -8,6 +8,9 @@ Coordinates MouseEvent::getCoords() const {
 bool MouseEvent::isClick() const {
     return _type == Click;
 }
+bool MouseEvent::isUnclick() const {
+    return _type == Unclick;
+}
 bool MouseEvent::isDrag() const {
     return _type == Drag;
 }
