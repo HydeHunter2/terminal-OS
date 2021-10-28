@@ -1,20 +1,21 @@
 #include "bordered_window.hpp"
 
-BorderedWindow::BorderedWindow(const Rect& rect, Taskbar* taskbar) : Window(rect) {
+BorderedWindow::BorderedWindow(const Rect& rect) : Window(rect) {
     // temp hardcode
-    _innerWindow = new Window(Rect(Coordinates(1, 1), Size(getWidth() - 2, getHeight() - 2)), '#');
     _icon = new Icon(this, Size(9, 5), {'.', '.', '.', '.', '.', '.', '.', '.', '.',
                                         '.', '.', '.', '.', '.', '.', '.', '.', '.',
                                         '.', '.', '.', '.', '.', '.', '.', '.', '.',
                                         '.', '.', '.', '.', '.', '.', '.', '.', '.',
                                         '.', '.', '.', '.', '.', '.', '.', '.', '.'});
+    _innerWindow = new Window(Rect(Coordinates(1, 3), Size(getWidth() - 2, getHeight() - 4)), '#');
 
     addWindow(_innerWindow);
+}
 
-    // move to BorderedWindow::connectWithTaskbar?
-    if (taskbar) {
-        taskbar->addIcon(_icon);
-    }
+BorderedWindow::BorderedWindow(Window* innerWindow)
+    : Window(Rect(innerWindow->getCoords() - Coordinates(1, 3), innerWindow->getSize().increased(2, 4))), _innerWindow(innerWindow) {
+    _innerWindow->moveTo({1, 3});
+    addWindow(_innerWindow);
 }
 
 char BorderedWindow::getPixel(const Coordinates& coords) const {
@@ -49,26 +50,24 @@ void BorderedWindow::processMouseEvent(const MouseEvent& mouseEvent) {
     if (mouseEvent.isUnclick()) {
         _resizingBorders.clear();
         _dragOffset = std::nullopt;
-    } else if (mouseEvent.isClick()) {
-        if (isCliked(this, mouseEvent.getCoords())) {
-            if (localCoords.x == 0) {
-                _resizingBorders.insert(Border::Left);
-            } else if (localCoords.x == getRect().getWidth() - 1) {
-                _resizingBorders.insert(Border::Right);
-            } else if (localCoords.y == 1) {
-                if (localCoords.x == 1) {
-                    kill();
-                } else if (localCoords.x == 3) {
-                    hide();
-                } else {
-                    _dragOffset = localCoords;
-                }
+    } else if (mouseEvent.isClick() && isCliked(mouseEvent.getCoords())) {
+        if (localCoords.x == 0) {
+            _resizingBorders.insert(Border::Left);
+        } else if (localCoords.x == getRect().getWidth() - 1) {
+            _resizingBorders.insert(Border::Right);
+        } else if (localCoords.y == 1) {
+            if (localCoords.x == 1) {
+                kill();
+            } else if (localCoords.x == 3) {
+                hide();
+            } else {
+                _dragOffset = localCoords;
             }
-            if (localCoords.y == 0) {
-                _resizingBorders.insert(Border::Up);
-            } else if (localCoords.y == getRect().getHeight() - 1) {
-                _resizingBorders.insert(Border::Down);
-            }
+        }
+        if (localCoords.y == 0) {
+            _resizingBorders.insert(Border::Up);
+        } else if (localCoords.y == getRect().getHeight() - 1) {
+            _resizingBorders.insert(Border::Down);
         }
     } else if (!_resizingBorders.empty()) {
         for (const auto& border : _resizingBorders) {
@@ -101,12 +100,17 @@ void BorderedWindow::processMouseEvent(const MouseEvent& mouseEvent) {
 
     Window::processMouseEvent(mouseEvent);
 }
+void BorderedWindow::connectWithTaskbar(Taskbar* taskbar) {
+    taskbar->addIcon(_icon);
+}
 void BorderedWindow::kill() {
-    _icon->kill();
+    if (_icon) {  // can be BorderedWindow without _icon?
+        _icon->kill();
+    }
     Window::kill();
 }
 
 void BorderedWindow::resize(Size size) {
-    _innerWindow->resize(size.increased(-2, -2));
+    _innerWindow->resize(size.increased(-2, -4));
     Window::resize(size);
 }

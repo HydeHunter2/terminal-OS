@@ -6,6 +6,10 @@
 
 #include "operating_system.hpp"
 #include "bordered_window.hpp"
+#include "terminal.hpp"
+
+// crash terminal when exit
+// todo precess system key (DEL, arrow?)
 
 // todo: Move time logic to some class
 using TimePoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
@@ -24,15 +28,19 @@ int main() {
     OperatingSystem OS({w, h});
 
     // temp hardcode
-    BorderedWindow* window1 = new BorderedWindow(Rect(15, 10, 50, 5), OS.getTaskbar());
-    BorderedWindow* window2 = new BorderedWindow(Rect(5, 5, 50, 15), OS.getTaskbar());
+    BorderedWindow* window1 = new BorderedWindow(Rect(15, 10, 50, 5));
+    BorderedWindow* window2 = new BorderedWindow(Rect(5, 5, 50, 15)); 
+    BorderedWindow* terminal = new BorderedWindow(new Terminal(Rect(3, 3, 50, 20)));
+    window1->connectWithTaskbar(OS.getTaskbar());
+    window2->connectWithTaskbar(OS.getTaskbar());
+    // terminal->connectWithTaskbar(OS.getTaskbar());
     OS.addWindow(window1);
     OS.addWindow(window2);
+    OS.addWindow(terminal);
 
     system("bash -c \"clear && echo -n \"\e[3J\"\"");  // clear terminal
     OS.draw();
 
-    std::string input;
     while (true) {
         system("stty raw");
         std::cout << "\e[?1002;1006;1015h";  // start observe mouse
@@ -42,8 +50,10 @@ int main() {
 
         char c;
         auto startClickTime = now();
-        while ((c = getchar()) != 27) {  // todo: process keyboard keys
-            if (timeDifference(startClickTime, now()) > 100) {
+        while (true) {
+            c = getchar();
+
+            if (timeDifference(startClickTime, now()) > 20) {
                 break;
             }
 
@@ -53,6 +63,8 @@ int main() {
             } else if ('0' <= c && c <= '9') {
                 data *= 10;
                 data += c - '0';
+            } else if (c == 'M' && mouseData.size() == 2) {
+                break;
             }
         }
         mouseData.push_back(data);
@@ -60,32 +72,33 @@ int main() {
         std::cout << "\e[?1002;1006;1015l";  // start observe mouse
         system("stty cooked");
 
-        if (mouseData.size() != 3) {
-            continue;
-        }
+        if (mouseData.size() == 3) {
+            int mouseX = mouseData[1] - 1;
+            int mouseY = mouseData[2] - 1;
 
-        int mouseX = mouseData[1] - 1;
-        int mouseY = mouseData[2] - 1;
+            if (mouseX + mouseY == 0) {
+                system("bash -c \"clear && echo -n \"\e[3J\"\"");
+                break;
+            }
 
-        if (mouseX + mouseY == 0) {
-            system("bash -c \"clear && echo -n \"\e[3J\"\"");
-            break;
-        }
-
-        system("bash -c \"clear && echo -n \"\e[3J\"\"");
-        if (mouseX >= 0 && mouseX < w &&
-            mouseY >= 0 || mouseY < h) {
-            static std::map<int, MouseEvent::Type> keyToType = {
-                {32, MouseEvent::Type::Click},
-                {35, MouseEvent::Type::Unclick},
-                {64, MouseEvent::Type::Drag},
-            };
-            OS.processMouseEvent({{mouseX, mouseY}, keyToType[mouseData[0]]});
+            if (mouseX >= 0 && mouseX < w &&
+                mouseY >= 0 || mouseY < h) {
+                static std::map<int, MouseEvent::Type> keyToType = {
+                    {32, MouseEvent::Type::Click},
+                    {35, MouseEvent::Type::Unclick},
+                    {64, MouseEvent::Type::Drag},
+                };
+                OS.processMouseEvent({{mouseX, mouseY}, keyToType[mouseData[0]]});
+            }
+        } else {
+            if ((32 <= c && c <= 126) || c == 13 || c == 127) {
+                OS.processKey(c);
+            }
         }
         OS.tick();
-        OS.draw();
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        system("bash -c \"clear && echo -n \"\e[3J\"\"");
+        OS.draw();
     }
 
     return 0;

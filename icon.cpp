@@ -9,7 +9,7 @@ char Icon::getPixel(const Coordinates& coords) const {
 }
 
 void Icon::processMouseEvent(const MouseEvent& mouseEvent) {
-    if (mouseEvent.isClick() && isCliked(this, mouseEvent.getCoords())) {
+    if (mouseEvent.isClick() && isCliked(mouseEvent.getCoords())) {
         _relatedWindow->show();
         _relatedWindow->moveToFront();
     }

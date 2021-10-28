@@ -7,10 +7,12 @@
 
 class BorderedWindow : public Window {
   public:
-    BorderedWindow(const Rect& rect, Taskbar* taskbar = nullptr);
+    BorderedWindow(const Rect& rect);  // todo: remove this contructor
+    BorderedWindow(Window* innerWindow);
 
     char getPixel(const Coordinates& coords) const override;
     void processMouseEvent(const MouseEvent& mouseEvent) override;
+    void connectWithTaskbar(Taskbar* taskbar);
     void kill() override;
 
     void resize(Size size) override;

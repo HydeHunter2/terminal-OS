@@ -13,4 +13,5 @@ add_executable(terminal-OS main.cpp
                            size.cpp
                            coordinates.cpp
                            image.cpp
-                           icon.cpp)
+                           icon.cpp
+                           terminal.cpp)

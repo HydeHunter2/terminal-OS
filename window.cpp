@@ -22,6 +22,9 @@ void Window::tick() {
 void Window::setParent(Window* parent) {
     _parent = parent;
 }
+Window* Window::getParent() const {
+    return _parent;
+}
 void Window::addWindow(Window* window) {
     window->setParent(this);
     _childs.pushFront(std::unique_ptr<Window>(window));
@@ -40,7 +43,21 @@ Coordinates Window::globalCoordsToLocal(const Coordinates& coords) const {
     return _parent->globalCoordsToLocal(coords) - getCoords();
 }
 
-Window* Window::getChildByCoords(const Coordinates& coords) {
+Window* Window::getOS() {
+    Window* OS = this;
+    while (OS->_parent != nullptr) {
+        OS = OS->_parent;
+    }
+    return OS;
+}
+const Window* Window::getOS() const {
+    const Window* OS = this;
+    while (OS->_parent != nullptr) {
+        OS = OS->_parent;
+    }
+    return OS;
+}
+Window* Window::getChildByCoords(const Coordinates& coords) const {
     for (const auto& node : _childs) {
         auto& child = node->value;
         if (child->getRect().contains(globalCoordsToLocal(coords))) {
@@ -49,21 +66,18 @@ Window* Window::getChildByCoords(const Coordinates& coords) {
     }
     return nullptr;
 }
-bool Window::isCliked(Window* window, const Coordinates& coords) {
-    if (_parent == nullptr) {
-        Window* child = this;
+bool Window::isCliked(const Coordinates& coords) const {
+    const Window* windowToCheck = getOS();
 
-        do {
-            child = child->getChildByCoords(coords);
-            if (child == window) {
-                return true;
-            }
-        } while (child != nullptr);
-
-        return false;
-    } else {
-        return _parent->isCliked(window, coords);
+    while (windowToCheck != nullptr) {
+        if (windowToCheck == this) {
+            return true;
+        }
+        windowToCheck = windowToCheck->getChildByCoords(coords);
+        
     }
+
+    return false;
 }
 void Window::moveToFront() {
     _parent->_childs.moveToBegin(_parent->_childs.find(this));
@@ -133,3 +147,11 @@ void Window::processMouseEvent(const MouseEvent& event) {
         child->processMouseEvent(event);
     }
 }
+void Window::processKey(char c) {
+    for (const auto& node : _childs) {
+        auto& child = node->value;
+        child->processKey(c);
+    }
+}
+
+

@@ -23,6 +23,7 @@ class Window {
     virtual void tick();
 
     void setParent(Window* parent);
+    Window* getParent() const;
     void addWindow(Window* window);
     void addToKillQueue(Window* window);
     virtual void kill();
@@ -30,8 +31,10 @@ class Window {
     virtual Coordinates localCoordsToGlobal(const Coordinates& coords) const;
     virtual Coordinates globalCoordsToLocal(const Coordinates& coords) const;
 
-    Window* getChildByCoords(const Coordinates& coords);
-    bool isCliked(Window* window, const Coordinates& coords);
+    Window* getOS();
+    const Window* getOS() const;
+    Window* getChildByCoords(const Coordinates& coords) const;
+    bool isCliked(const Coordinates& coords) const;
     void moveToFront();
 
     Rect getRect() const;
@@ -51,6 +54,7 @@ class Window {
 
     virtual char getPixel(const Coordinates& coords) const;
     virtual void processMouseEvent(const MouseEvent& event);
+    virtual void processKey(char c);
 
   private:
     Rect _rect;
