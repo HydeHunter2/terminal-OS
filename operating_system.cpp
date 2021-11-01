@@ -2,9 +2,8 @@
 
 OperatingSystem::OperatingSystem(Size size)
     : Window(Rect({0, 0}, size), ' '), _taskbar(new Taskbar(Rect({0, getHeight() - 5}, Size(getWidth(), 5)))) {
-    addWindow(_taskbar);
+    Window::addWindow(_taskbar);
 }
-
 
 Coordinates OperatingSystem::localCoordsToGlobal(const Coordinates& coords) const {
     return coords;

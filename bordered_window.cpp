@@ -1,21 +1,16 @@
 #include "bordered_window.hpp"
 
-BorderedWindow::BorderedWindow(const Rect& rect) : Window(rect) {
-    // temp hardcode
-    _icon = new Icon(this, Size(9, 5), {'.', '.', '.', '.', '.', '.', '.', '.', '.',
-                                        '.', '.', '.', '.', '.', '.', '.', '.', '.',
-                                        '.', '.', '.', '.', '.', '.', '.', '.', '.',
-                                        '.', '.', '.', '.', '.', '.', '.', '.', '.',
-                                        '.', '.', '.', '.', '.', '.', '.', '.', '.'});
-    _innerWindow = new Window(Rect(Coordinates(1, 3), Size(getWidth() - 2, getHeight() - 4)), '#');
-
-    addWindow(_innerWindow);
-}
-
 BorderedWindow::BorderedWindow(Window* innerWindow)
     : Window(Rect(innerWindow->getCoords() - Coordinates(1, 3), innerWindow->getSize().increased(2, 4))), _innerWindow(innerWindow) {
     _innerWindow->moveTo({1, 3});
     addWindow(_innerWindow);
+}
+
+void BorderedWindow::setIcon(Icon* icon) {
+    _icon = icon;
+}
+void BorderedWindow::connectWithTaskbar(Taskbar* taskbar) {
+    taskbar->addIcon(_icon);
 }
 
 char BorderedWindow::getPixel(const Coordinates& coords) const {
@@ -99,9 +94,6 @@ void BorderedWindow::processMouseEvent(const MouseEvent& mouseEvent) {
     }
 
     Window::processMouseEvent(mouseEvent);
-}
-void BorderedWindow::connectWithTaskbar(Taskbar* taskbar) {
-    taskbar->addIcon(_icon);
 }
 void BorderedWindow::kill() {
     if (_icon) {  // can be BorderedWindow without _icon?

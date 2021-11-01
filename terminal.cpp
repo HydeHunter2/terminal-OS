@@ -1,6 +1,17 @@
 #include "terminal.hpp"
 
-Terminal::Terminal(const Rect& rect) : Window(rect) {}
+Terminal::Terminal(const Rect& rect) : Window(rect) {
+    _image = std::unique_ptr<Image>(new Image(Size(9, 5),
+        {'-', '-', '-', '-', '-', '-', '-', '-', '-',
+         '|', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '|',
+         '|', 'C', 'o', 'n', 's', 'o', 'l', 'e', '|',
+         '|', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '|',
+         '-', '-', '-', '-', '-', '-', '-', '-', '-'}));
+}
+
+Image* Terminal::getIconImage() {
+    return _image.get();
+}
 
 char Terminal::getPixel(const Coordinates& coords) const {
     int flatCoord = coords.y * getWidth() + coords.x;
@@ -42,6 +53,10 @@ char Terminal::getPixel(const Coordinates& coords) const {
 }
 
 void Terminal::processKey(char c) {
+    if (!isVisible() || !getParent()->isFront()) {
+        return;
+    }
+
     if (c == 13) {
         auto output = processCommand();
         if (!output.empty()) {
@@ -67,7 +82,9 @@ std::string Terminal::processCommand() {
     if (command == "help") {
         return " - help\n - exit";
     } else if (command == "exit") {
-        getParent()->kill();  // todo: fix!!!
+        getParent()->kill();
+    } else if (command == "") {
+        return "";
     }
 
     return "  Command not found: " + command + ". Use \"help\"";

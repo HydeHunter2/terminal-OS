@@ -6,12 +6,12 @@
 
 class Icon : public Window {
   public:
-    Icon(Window* relatedWindow, const Size& size, std::initializer_list<char> data);
+    Icon(Window* relatedWindow, Image* image);
 
     char getPixel(const Coordinates& coords) const override;
     void processMouseEvent(const MouseEvent& mouseEvent) override;
 
   private:
     Window* _relatedWindow{ nullptr };
-    Image _image;
+    Image* _image;
 };

@@ -5,13 +5,9 @@
 
 class Taskbar : public Window {
   public:
-    Taskbar(const Rect& rect) : Window(rect, ' ') {}
+    Taskbar(const Rect& rect);
 
-    void addIcon(Icon* icon) {
-        icon->moveTo({int(_icons.size()) * (9 + 1) + 1, 0});
-        _icons.push_back(icon);
-        addWindow(icon);
-    }
+    void addIcon(Icon* icon);
 
   private:
     std::vector<Icon*> _icons;

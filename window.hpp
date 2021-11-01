@@ -36,6 +36,7 @@ class Window {
     Window* getChildByCoords(const Coordinates& coords) const;
     bool isCliked(const Coordinates& coords) const;
     void moveToFront();
+    bool isFront() const;
 
     Rect getRect() const;
     Size getSize() const;

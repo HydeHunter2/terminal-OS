@@ -5,11 +5,8 @@
 #include <map>
 
 #include "operating_system.hpp"
-#include "bordered_window.hpp"
 #include "terminal.hpp"
-
-// crash terminal when exit
-// todo precess system key (DEL, arrow?)
+#include "paint.hpp"
 
 // todo: Move time logic to some class
 using TimePoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
@@ -23,20 +20,17 @@ int timeDifference(TimePoint firstPoint, TimePoint secondPoint) {
 
 int main() {
     const int w = 200;
-    const int h = 30;
+    const int h = 40;
 
     OperatingSystem OS({w, h});
 
     // temp hardcode
-    BorderedWindow* window1 = new BorderedWindow(Rect(15, 10, 50, 5));
-    BorderedWindow* window2 = new BorderedWindow(Rect(5, 5, 50, 15)); 
-    BorderedWindow* terminal = new BorderedWindow(new Terminal(Rect(3, 3, 50, 20)));
-    window1->connectWithTaskbar(OS.getTaskbar());
-    window2->connectWithTaskbar(OS.getTaskbar());
-    // terminal->connectWithTaskbar(OS.getTaskbar());
-    OS.addWindow(window1);
-    OS.addWindow(window2);
+    Application terminal = Application<Terminal>(Rect(3, 3, 50, 20));
+    terminal.connectWithTaskbar(OS.getTaskbar());
     OS.addWindow(terminal);
+    Application paint = Application<Paint>(Rect(7, 7, 50, 20));
+    paint.connectWithTaskbar(OS.getTaskbar());
+    OS.addWindow(paint);
 
     system("bash -c \"clear && echo -n \"\e[3J\"\"");  // clear terminal
     OS.draw();
@@ -76,7 +70,7 @@ int main() {
             int mouseX = mouseData[1] - 1;
             int mouseY = mouseData[2] - 1;
 
-            if (mouseX + mouseY == 0) {
+            if (mouseX == 0 && mouseY == 0) {
                 system("bash -c \"clear && echo -n \"\e[3J\"\"");
                 break;
             }

@@ -83,6 +83,14 @@ void Window::moveToFront() {
     _parent->_childs.moveToBegin(_parent->_childs.find(this));
 }
 
+bool Window::isFront() const {
+    if (_parent == nullptr) {
+        return true;
+    }
+
+    return _parent->_childs.front()->value == this;
+}
+
 Rect Window::getRect() const {
     return _rect;
 }
@@ -133,7 +141,7 @@ bool Window::isVisible() const {
 }
 
 void Window::processMouseEvent(const MouseEvent& event) {
-    if (!_isVisible) {
+    if (!isVisible()) {
         return;
     }
 
