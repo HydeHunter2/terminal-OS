@@ -14,9 +14,6 @@ class Application {
     Window* getWindow() const {
         return _borderedWindow;
     }
-    void connectWithTaskbar(Taskbar* taskbar) {
-        _borderedWindow->connectWithTaskbar(taskbar);
-    }
 
   private:
     App* _app;

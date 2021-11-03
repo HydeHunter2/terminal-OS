@@ -24,7 +24,7 @@ class Window {
 
     void setParent(Window* parent);
     Window* getParent() const;
-    void addWindow(Window* window);
+    virtual void addWindow(Window* window);
     void addToKillQueue(Window* window);
     virtual void kill();
 

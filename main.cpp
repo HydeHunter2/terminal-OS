@@ -8,6 +8,9 @@
 #include "terminal.hpp"
 #include "paint.hpp"
 
+// todo: colorful cout (!)
+// todo: process system keys (control/option/shift)
+
 // todo: Move time logic to some class
 using TimePoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
 
@@ -25,12 +28,8 @@ int main() {
     OperatingSystem OS({w, h});
 
     // temp hardcode
-    Application terminal = Application<Terminal>(Rect(3, 3, 50, 20));
-    terminal.connectWithTaskbar(OS.getTaskbar());
-    OS.addWindow(terminal);
-    Application paint = Application<Paint>(Rect(7, 7, 50, 20));
-    paint.connectWithTaskbar(OS.getTaskbar());
-    OS.addWindow(paint);
+    OS.addWindow(Application<Terminal>(Rect(3, 3, 50, 20)).getWindow());
+    OS.addWindow(Application<Paint>(Rect(7, 7, 50, 20)).getWindow());
 
     system("bash -c \"clear && echo -n \"\e[3J\"\"");  // clear terminal
     OS.draw();

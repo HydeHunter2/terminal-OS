@@ -74,18 +74,75 @@ void Terminal::processKey(char c) {
     }
 }
 
-std::string Terminal::processCommand() {
-    // todo: delete all space in begin and end
-    auto command = _history.back();
-    command.erase(0, _name.size() + 2);
-
-    if (command == "help") {
-        return " - help\n - exit";
-    } else if (command == "exit") {
-        getParent()->kill();
-    } else if (command == "") {
+std::string removeLeadingAndTrailingSpaces(const std::string& str) {
+    auto start = str.find_first_not_of(" ");
+    auto end = str.find_last_not_of(" ") + 1;
+    if (start == std::string::npos) {
         return "";
     }
 
+    return str.substr(start, end - start);
+}
+std::vector<std::string> slpit(const std::string& str, char delimitor, bool deleteEmpty = true) {
+    std::vector<std::string> out;
+
+    std::string s;
+    std::stringstream stringstream(str);
+    while (std::getline(stringstream, s, delimitor)) {
+        if (!deleteEmpty || !s.empty()) {
+            out.push_back(s); 
+        }
+    }
+
+    return out;
+} 
+
+std::string Terminal::processCommand() {
+    auto command = _history.back();
+    command.erase(0, _name.size() + 2);
+    command = removeLeadingAndTrailingSpaces(command);
+    if (command.empty()) {
+        return "";
+    }
+
+    auto tokens = slpit(command, ' ');
+    if (tokens[0] == "help") {
+        return help(tokens);
+    } else if (tokens[0] == "terminal") {
+        return terminal(tokens);
+    } else if (tokens[0] == "paint") {
+        return paint(tokens);
+    } else if (tokens[0] == "exit") {
+        getParent()->kill();
+    }
+
     return "  Command not found: " + command + ". Use \"help\"";
+}
+
+std::string invalidArgument(const std::string& argument, const std::string& command) {
+    return "  Invalid argument: " + argument + ". See \"man " + command + "\" or \"" + command + " -h\"";
+}
+std::string Terminal::help(const std::vector<std::string>& tokens) {
+    if (tokens.size() > 1) {
+        return invalidArgument(tokens[1], "help");
+    }
+    return " - help\n - terminal\n - paint\n - exit";
+}
+std::string Terminal::terminal(const std::vector<std::string>& tokens) {
+    if (tokens.size() > 1) {
+        return invalidArgument(tokens[1], "terminal");
+    }
+
+    // fix rect
+    getOS()->addWindow(Application<Terminal>(Rect(7, 7, 50, 20)).getWindow());
+    return "  Start Terminal...";
+}
+std::string Terminal::paint(const std::vector<std::string>& tokens) {
+    if (tokens.size() > 1) {
+        return invalidArgument(tokens[1], "paint");
+    }
+
+    // fix rect
+    getOS()->addWindow(Application<Paint>(Rect(7, 7, 50, 20)).getWindow());
+    return "  Start Paint...";
 }

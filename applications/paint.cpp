@@ -24,6 +24,16 @@ void Paint::processMouseEvent(const MouseEvent& event) {
         return;
     }
 
+    if (event.isClick()) {
+        _isPainting = true;
+    } else if (event.isUnclick()) {
+        _isPainting = false;
+    }
+
+    if (!_isPainting) {
+        return;
+    }
+
     auto coords = globalCoordsToLocal(event.getCoords());
     int x = coords.x;
     int y = coords.y;

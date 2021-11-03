@@ -1,10 +1,14 @@
 #pragma once
 
-#include <vector>
+#include <sstream>
 #include <string>
+#include <vector>
 
 #include "bordered_window.hpp"
+#include "application.hpp"
+#include "paint.hpp"
 
+// todo: file system (!!!)
 // todo: add blinking symbol at carriage position (in tick method process blinking)
 // todo: scroll
 class Terminal : public Window {
@@ -22,4 +26,7 @@ class Terminal : public Window {
     std::vector<std::string> _history{ _name + "> " };
 
     std::string processCommand();
+    std::string help(const std::vector<std::string>& tokens);
+    std::string terminal(const std::vector<std::string>& tokens);
+    std::string paint(const std::vector<std::string>& tokens);
 };

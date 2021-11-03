@@ -11,6 +11,11 @@ Coordinates OperatingSystem::localCoordsToGlobal(const Coordinates& coords) cons
 Coordinates OperatingSystem::globalCoordsToLocal(const Coordinates& coords) const {
     return coords;
 }
+void OperatingSystem::addWindow(Window* window) {
+    BorderedWindow* borderedWindow = dynamic_cast<BorderedWindow*>(window);  // without casting?
+    borderedWindow->connectWithTaskbar(getTaskbar());
+    Window::addWindow(borderedWindow);
+}
 
 Taskbar* OperatingSystem::getTaskbar() const {
     return _taskbar;

@@ -20,6 +20,7 @@ class Paint : public Window {
   private:
     std::unique_ptr<Image> _image{ nullptr };
     std::vector<std::vector<char>> _canvas;
+    bool _isPainting{ false };
 
     std::string processCommand();
 };

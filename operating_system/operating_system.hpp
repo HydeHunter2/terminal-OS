@@ -12,14 +12,9 @@ class OperatingSystem : public Window {
   public:
     OperatingSystem(Size size);
 
-    template<class App>
-    void addWindow(const Application<App>& application) {
-        Window::addWindow(application.getWindow());
-    }
-    void addWindow(Window* window) = delete;
-
     Coordinates localCoordsToGlobal(const Coordinates& coords) const override;
     Coordinates globalCoordsToLocal(const Coordinates& coords) const override;
+    void addWindow(Window* window) override;
 
     Taskbar* getTaskbar() const;
 
