@@ -24,7 +24,7 @@ Taskbar* OperatingSystem::getTaskbar() const {
 void OperatingSystem::draw() {
     for (int y = 0; y < getHeight(); ++y) {
         for (int x = 0; x < getWidth(); ++x) {
-            std::cout << getPixel({x, y});
+            _print << getPixel({x, y});
         }
         std::cout << '\n';
     }

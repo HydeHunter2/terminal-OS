@@ -11,12 +11,23 @@ Paint::Paint(const Rect& rect) : Window(rect) {
     _canvas = std::vector<std::vector<char>>(getHeight(), std::vector<char>(getWidth(), '.'));
 }
 
-Image* Paint::getIconImage() {
+Image* Paint::getIconImage() const {
     return _image.get();
 }
+std::string Paint::getTitle() const {
+    return "Paint";
+}
 
-char Paint::getPixel(const Coordinates& coords) const {
-    return _canvas[coords.y][coords.x];
+Pixel Paint::getPixel(const Coordinates& coords) const {
+    Pixel pixel = _canvas[coords.y][coords.x];
+
+    if (pixel.symbol != '.') {
+        pixel.backgroundColor = BackgroundColor::White;
+    } else {
+        pixel.backgroundColor = BackgroundColor::Default;
+    }
+
+    return pixel;
 }
 
 void Paint::processMouseEvent(const MouseEvent& event) {

@@ -8,7 +8,7 @@ class Icon : public Window {
   public:
     Icon(Window* relatedWindow, Image* image);
 
-    char getPixel(const Coordinates& coords) const override;
+    Pixel getPixel(const Coordinates& coords) const override;
     void processMouseEvent(const MouseEvent& mouseEvent) override;
 
   private:

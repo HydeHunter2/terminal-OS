@@ -3,6 +3,7 @@
 #include <iostream>
 #include <set>
 
+#include "colorful_print.hpp"
 #include "application.hpp"
 #include "taskbar.hpp"
 #include "window.hpp"
@@ -22,4 +23,5 @@ class OperatingSystem : public Window {
   
   private:
     Taskbar* _taskbar;
+    ColorfulPrint _print;
 };

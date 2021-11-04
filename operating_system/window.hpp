@@ -5,6 +5,7 @@
 #include <set>
 
 #include "rect.hpp"
+#include "pixel.hpp"
 #include "mouse_event.hpp"
 #include "bidirectional_list.hpp"
 
@@ -53,7 +54,7 @@ class Window {
     void show();
     bool isVisible() const;
 
-    virtual char getPixel(const Coordinates& coords) const;
+    virtual Pixel getPixel(const Coordinates& coords) const;
     virtual void processMouseEvent(const MouseEvent& event);
     virtual void processKey(char c);
 

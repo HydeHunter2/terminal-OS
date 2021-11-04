@@ -1,7 +1,8 @@
 #include "bordered_window.hpp"
 
-BorderedWindow::BorderedWindow(Window* innerWindow)
-    : Window(Rect(innerWindow->getCoords() - Coordinates(1, 3), innerWindow->getSize().increased(2, 4))), _innerWindow(innerWindow) {
+BorderedWindow::BorderedWindow(Window* innerWindow, const std::string& title)
+    : Window(Rect(innerWindow->getCoords() - Coordinates(1, 3), innerWindow->getSize().increased(2, 4))),
+      _innerWindow(innerWindow), _title(title) {
     _innerWindow->moveTo({1, 3});
     addWindow(_innerWindow);
 }
@@ -13,7 +14,7 @@ void BorderedWindow::connectWithTaskbar(Taskbar* taskbar) {
     taskbar->addIcon(_icon);
 }
 
-char BorderedWindow::getPixel(const Coordinates& coords) const {
+Pixel BorderedWindow::getPixel(const Coordinates& coords) const {
     bool isExit = (coords.x == 1 && coords.y == 1);
     bool isHide = (coords.x == 3 && coords.y == 1);
     bool isHorizontalLine = (coords.y == 0 || coords.y == 2 || coords.y == getHeight() - 1);
@@ -21,7 +22,7 @@ char BorderedWindow::getPixel(const Coordinates& coords) const {
     bool isSpace = coords.y == 1;
 
     if (isExit) {
-        return 'X';
+        return {'X', Effect::Reset, ForgroundColor::LightRed, BackgroundColor::Default};
     } else if (isHide) {
         return 'H';
     } else if (isHorizontalLine){
@@ -29,6 +30,14 @@ char BorderedWindow::getPixel(const Coordinates& coords) const {
     } else if (isVerticalLine) {
         return '|';
     } else if (isSpace) {
+        if (coords.x >= 7 && coords.x < 7 + _title.size()) {  // refactor
+            char symbol = _title[coords.x - 7];
+
+            if (isFront()) {
+                return {symbol, Effect::Bold, ForgroundColor::Default, BackgroundColor::Default};
+            }
+            return symbol;
+        }
         return ' ';
     }
 

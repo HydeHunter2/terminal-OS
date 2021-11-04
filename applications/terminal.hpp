@@ -15,9 +15,10 @@ class Terminal : public Window {
   public:
     Terminal(const Rect& rect);
 
-    Image* getIconImage();
+    Image* getIconImage() const;
+    std::string getTitle() const;
 
-    char getPixel(const Coordinates& coords) const override;
+    Pixel getPixel(const Coordinates& coords) const override;
     void processKey(char c) override;
 
   private:

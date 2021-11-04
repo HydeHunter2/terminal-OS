@@ -120,7 +120,7 @@ void Window::resize(Size size) {
     _rect.setSize(size);
 }
 
-char Window::getPixel(const Coordinates& coords) const {
+Pixel Window::getPixel(const Coordinates& coords) const {
     for (const auto& node : _childs) {
         auto& child = node->value;
         if (child->isVisible() && child->getRect().contains(coords)) {

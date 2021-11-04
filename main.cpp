@@ -23,7 +23,7 @@ int timeDifference(TimePoint firstPoint, TimePoint secondPoint) {
 
 int main() {
     const int w = 200;
-    const int h = 40;
+    const int h = 50;
 
     OperatingSystem OS({w, h});
 

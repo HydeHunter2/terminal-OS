@@ -9,11 +9,14 @@ Terminal::Terminal(const Rect& rect) : Window(rect) {
          '-', '-', '-', '-', '-', '-', '-', '-', '-'}));
 }
 
-Image* Terminal::getIconImage() {
+Image* Terminal::getIconImage() const {
     return _image.get();
 }
+std::string Terminal::getTitle() const {
+    return "Terminal";
+}
 
-char Terminal::getPixel(const Coordinates& coords) const {
+Pixel Terminal::getPixel(const Coordinates& coords) const {
     int flatCoord = coords.y * getWidth() + coords.x;
     int index = 0;
 

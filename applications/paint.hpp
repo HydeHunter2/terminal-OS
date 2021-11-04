@@ -10,9 +10,10 @@ class Paint : public Window {
   public:
     Paint(const Rect& rect);
 
-    Image* getIconImage();
+    Image* getIconImage() const;
+    std::string getTitle() const;
 
-    char getPixel(const Coordinates& coords) const override;
+    Pixel getPixel(const Coordinates& coords) const override;
     void processMouseEvent(const MouseEvent& event) override;
     void processKey(char c) override;
     void resize(Size size) override;
