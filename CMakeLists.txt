@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_executable(terminal-OS main.cpp
                            operating_system/operating_system.cpp
+                           operating_system/file_system.cpp
                            operating_system/window.cpp
                            operating_system/bordered_window.cpp
                            operating_system/taskbar.cpp

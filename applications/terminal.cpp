@@ -66,7 +66,7 @@ void Terminal::processKey(char c) {
             _history.push_back(output);
         }
 
-        _history.push_back(_name + "> ");
+        _history.push_back(_name + " $ ");
     } else if (c == 127) {
         auto& command = _history.back();
         if (command.size() > _name.size() + 2) {
@@ -111,6 +111,10 @@ std::string Terminal::processCommand() {
     auto tokens = slpit(command, ' ');
     if (tokens[0] == "help") {
         return help(tokens);
+    } else if (tokens[0] == "ls") {
+        return ls(tokens);
+    } else if (tokens[0] == "cat") {
+        return cat(tokens);
     } else if (tokens[0] == "terminal") {
         return terminal(tokens);
     } else if (tokens[0] == "paint") {
@@ -125,11 +129,42 @@ std::string Terminal::processCommand() {
 std::string invalidArgument(const std::string& argument, const std::string& command) {
     return "  Invalid argument: " + argument + ". See \"man " + command + "\" or \"" + command + " -h\"";
 }
+std::string missingArguments(const std::string& command) {
+    return "  Missing argument. See \"man " + command + "\" or \"" + command + " -h\"";
+}
+
 std::string Terminal::help(const std::vector<std::string>& tokens) {
     if (tokens.size() > 1) {
         return invalidArgument(tokens[1], "help");
     }
-    return " - help\n - terminal\n - paint\n - exit";
+    return " - help\n - ls\n - terminal\n - paint\n - exit";
+}
+std::string Terminal::ls(const std::vector<std::string>& tokens) {
+    if (tokens.size() > 1) {
+        return invalidArgument(tokens[1], "help");
+    }
+    std::string out;
+
+    auto files = FileSystem::ls("");
+    for (int i = 0; i < files.size(); ++i) {
+        out += files.at(i);
+
+        if (i != files.size() - 1) {
+            out += '\n';
+        }
+    }
+
+    return out;
+}
+std::string Terminal::cat(const std::vector<std::string>& tokens) {
+    if (tokens.size() == 1) {
+        return missingArguments("cat");
+    } else if (tokens.size() > 2) {
+        return invalidArgument(tokens[2], "help");
+    }
+
+    auto file = FileSystem::File(tokens[1]);
+    return FileSystem::read(file);
 }
 std::string Terminal::terminal(const std::vector<std::string>& tokens) {
     if (tokens.size() > 1) {

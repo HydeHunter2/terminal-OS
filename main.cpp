@@ -8,7 +8,6 @@
 #include "terminal.hpp"
 #include "paint.hpp"
 
-// todo: colorful cout (!)
 // todo: process system keys (control/option/shift)
 
 // todo: Move time logic to some class
@@ -23,13 +22,12 @@ int timeDifference(TimePoint firstPoint, TimePoint secondPoint) {
 
 int main() {
     const int w = 200;
-    const int h = 50;
+    const int h = 40;
 
     OperatingSystem OS({w, h});
 
     // temp hardcode
     OS.addWindow(Application<Terminal>(Rect(3, 3, 50, 20)).getWindow());
-    OS.addWindow(Application<Paint>(Rect(7, 7, 50, 20)).getWindow());
 
     system("bash -c \"clear && echo -n \"\e[3J\"\"");  // clear terminal
     OS.draw();
