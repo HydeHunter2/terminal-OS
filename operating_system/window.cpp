@@ -155,6 +155,12 @@ void Window::processMouseEvent(const MouseEvent& event) {
         child->processMouseEvent(event);
     }
 }
+void Window::processSpecialKey(SpecialKey specialKey) {
+    for (const auto& node : _childs) {
+        auto& child = node->value;
+        child->processSpecialKey(specialKey);
+    }
+}
 void Window::processKey(char c) {
     for (const auto& node : _childs) {
         auto& child = node->value;

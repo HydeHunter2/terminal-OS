@@ -9,7 +9,6 @@
 #include "application.hpp"
 #include "paint.hpp"
 
-// todo: file system (!!!)
 // todo: scroll
 class Terminal : public Window {
   public:
@@ -19,14 +18,37 @@ class Terminal : public Window {
     std::string getTitle() const;
 
     Pixel getPixel(const Coordinates& coords) const override;
+    void processSpecialKey(SpecialKey specialKey) override;
     void processKey(char c) override;
+    void resize(Size size) override;
 
   private:
-    std::unique_ptr<Image> _image{ nullptr };
-    const std::string _name{ "hyde" };
-    std::vector<std::string> _history{ _name + " $ " };
+    class Command {
+      public:
+        Command(const std::string& prefix, const std::vector<std::string>& tokens, const std::string& output);
 
-    std::string processCommand();
+        std::string getPrefix() const;
+        std::string getOutput() const;
+        std::vector<std::string> getTokens() const;
+        std::string getTokensString() const;
+
+      private:
+        std::string _prefix;
+        std::vector<std::string> _tokens;
+        std::string _output{ "" };
+    };
+
+    std::unique_ptr<Image> _image{ nullptr };
+    std::string _name{ "hyde" };
+    std::vector<Command> _history{};
+    int _selectPrevCommandIndex;
+    std::vector<std::vector<Pixel>> _canvas;
+    std::string _input{ "" };
+
+    void updateCanvas();
+    std::string getPrefix() const;
+
+    std::string processCommand(const std::vector<std::string>& tokens);
     std::string help(const std::vector<std::string>& tokens);
     std::string ls(const std::vector<std::string>& tokens);
     std::string cat(const std::vector<std::string>& tokens);

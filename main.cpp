@@ -3,13 +3,14 @@
 #include <chrono>
 #include <thread>
 #include <map>
+#include <sys/time.h>
+#include <sys/select.h>
 
 #include "operating_system.hpp"
 #include "terminal.hpp"
 #include "paint.hpp"
 
-// todo: process system keys (control/option/shift)
-
+// todo: redraw only when something changed
 // todo: Move time logic to some class
 using TimePoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
 
@@ -21,6 +22,11 @@ int timeDifference(TimePoint firstPoint, TimePoint secondPoint) {
 }
 
 int main() {
+    system("bash -c \"clear && echo -n \"\e[3J\"\"");  // clear terminal
+
+    system("stty raw");
+    std::cout << "\e[?1002;1006;1015h";  // start observe mouse
+
     const int w = 200;
     const int h = 40;
 
@@ -28,40 +34,52 @@ int main() {
 
     // temp hardcode
     OS.addWindow(Application<Terminal>(Rect(3, 3, 50, 20)).getWindow());
-
-    system("bash -c \"clear && echo -n \"\e[3J\"\"");  // clear terminal
     OS.draw();
 
+    fd_set rfds;
+    FD_ZERO(&rfds);
+    FD_SET(0, &rfds);
+
+    struct timeval timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 500000;
+
     while (true) {
-        system("stty raw");
-        std::cout << "\e[?1002;1006;1015h";  // start observe mouse
-
+        std::vector<char> keyData;
         std::vector<int> mouseData;
-        int data = 0;
+        int buffer = 0;
 
-        char c;
-        auto startClickTime = now();
-        while (true) {
-            c = getchar();
+        select(1, &rfds, NULL, NULL, &timeout);
+        if (FD_ISSET(0, &rfds)) {
+            char c = getchar();
 
-            if (timeDifference(startClickTime, now()) > 20) {
-                break;
+            if (c == 27) {
+                getchar(); // [
+                c = getchar();
+
+                if ('0' <= c && c <= '9') {
+                    while (c != 'M') {
+                        if (c == ';') {
+                            mouseData.push_back(buffer);
+                            buffer = 0;
+                        } else if ('0' <= c && c <= '9') {
+                            buffer *= 10;
+                            buffer += c - '0';
+                        }
+
+                        c = getchar();
+                    }
+                    mouseData.push_back(buffer);
+                } else {
+                    keyData.push_back('[');
+                    keyData.push_back(c);
+                }
+            } else {
+                keyData.push_back(c);
             }
-
-            if (c == ';') {
-                mouseData.push_back(data);
-                data = 0;
-            } else if ('0' <= c && c <= '9') {
-                data *= 10;
-                data += c - '0';
-            } else if (c == 'M' && mouseData.size() == 2) {
-                break;
-            }
+        } else {
+            FD_SET(0, &rfds);
         }
-        mouseData.push_back(data);
-
-        std::cout << "\e[?1002;1006;1015l";  // start observe mouse
-        system("stty cooked");
 
         if (mouseData.size() == 3) {
             int mouseX = mouseData[1] - 1;
@@ -81,16 +99,31 @@ int main() {
                 };
                 OS.processMouseEvent({{mouseX, mouseY}, keyToType[mouseData[0]]});
             }
+        } else if (keyData.size() >= 2 && keyData[0] == 91) {
+            switch (keyData.at(1)) {
+                case 'A': {
+                    OS.processSpecialKey(SpecialKey::UpArrow);
+                    break;
+                }
+                case 'B': {
+                    OS.processSpecialKey(SpecialKey::DownArrow);
+                    break;
+                }
+            }
         } else {
-            if ((32 <= c && c <= 126) || c == 13 || c == 127) {
-                OS.processKey(c);
+            for (char c : keyData) {
+                if ((32 <= c && c <= 126) || c == 13 || c == 127) {
+                    OS.processKey(c);
+                }
             }
         }
         OS.tick();
 
-        system("bash -c \"clear && echo -n \"\e[3J\"\"");
         OS.draw();
     }
+
+    std::cout << "\e[?1002;1006;1015l";  // stop observe mouse
+    system("stty cooked");
 
     return 0;
 }

@@ -6,6 +6,7 @@
 
 #include "rect.hpp"
 #include "pixel.hpp"
+#include "special_key.hpp"
 #include "mouse_event.hpp"
 #include "bidirectional_list.hpp"
 
@@ -56,6 +57,7 @@ class Window {
 
     virtual Pixel getPixel(const Coordinates& coords) const;
     virtual void processMouseEvent(const MouseEvent& event);
+    virtual void processSpecialKey(SpecialKey specialKey);
     virtual void processKey(char c);
 
   private:

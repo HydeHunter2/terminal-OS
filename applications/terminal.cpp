@@ -7,6 +7,9 @@ Terminal::Terminal(const Rect& rect) : Window(rect) {
          '|', 'C', 'o', 'n', 's', 'o', 'l', 'e', '|',
          '|', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '|',
          '-', '-', '-', '-', '-', '-', '-', '-', '-'}));
+
+    _canvas = std::vector<std::vector<Pixel>>(getHeight(), std::vector<Pixel>(getWidth(), {' '}));
+    updateCanvas();
 }
 
 Image* Terminal::getIconImage() const {
@@ -20,61 +23,7 @@ Pixel Terminal::getPixel(const Coordinates& coords) const {
     int flatCoord = coords.y * getWidth() + coords.x;
     int index = 0;
 
-    for (const auto& str : _history) {
-        int xPosition = 0;
-        static auto newLineWithCheck = [this, &xPosition, &index, &flatCoord]() {
-            int oldIndex = index;
-            index += getWidth() - xPosition;
-            xPosition = 0;
-            return (oldIndex <= flatCoord && flatCoord < index);
-        };
-
-        for (char c : str) {
-            if (c == '\n') {
-                if (newLineWithCheck()) {
-                    return ' ';
-                }
-            } else if (index == flatCoord) {
-                return c;
-            }
-            
-            if (c != '\n') {
-                ++index;
-                ++xPosition;
-
-                if (xPosition == getWidth()) {
-                    newLineWithCheck();
-                }
-            }
-        }
-        if (newLineWithCheck()) {
-            return ' ';
-        }
-    }
-
-    return ' ';
-}
-
-void Terminal::processKey(char c) {
-    if (!isVisible() || !getParent()->isFront()) {
-        return;
-    }
-
-    if (c == 13) {
-        auto output = processCommand();
-        if (!output.empty()) {
-            _history.push_back(output);
-        }
-
-        _history.push_back(_name + " $ ");
-    } else if (c == 127) {
-        auto& command = _history.back();
-        if (command.size() > _name.size() + 2) {
-            command.pop_back();
-        }
-    } else {
-        _history.back() += c;
-    }
+    return _canvas[coords.y][coords.x];
 }
 
 std::string removeLeadingAndTrailingSpaces(const std::string& str) {
@@ -98,17 +47,147 @@ std::vector<std::string> slpit(const std::string& str, char delimitor, bool dele
     }
 
     return out;
-} 
+}
 
-std::string Terminal::processCommand() {
-    auto command = _history.back();
-    command.erase(0, _name.size() + 2);
-    command = removeLeadingAndTrailingSpaces(command);
-    if (command.empty()) {
-        return "";
+void Terminal::processKey(char c) {
+    if (!isVisible() || !getParent()->isFront()) {
+        return;
     }
 
-    auto tokens = slpit(command, ' ');
+    if (c == 13) {
+        auto tokens = slpit(removeLeadingAndTrailingSpaces(_input), ' ');
+        if (!tokens.empty()) {
+            auto output = processCommand(tokens);
+            _history.push_back({getPrefix(), tokens, output});
+            _selectPrevCommandIndex = _history.size();
+        }
+
+        _input = "";
+    } else if (c == 127) {
+        if (!_input.empty()) {
+            _input.pop_back();
+        }
+    } else {
+        _input += c;
+    }
+    updateCanvas();
+
+    Window::processKey(c);
+}
+void Terminal::processSpecialKey(SpecialKey specialKey) {
+    if (!isVisible() || !getParent()->isFront()) {
+        return;
+    }
+
+    switch (specialKey) {
+        case SpecialKey::UpArrow: {
+            if (_selectPrevCommandIndex != 0) {
+                --_selectPrevCommandIndex;
+            }
+            break;
+        }
+        case SpecialKey::DownArrow: {
+            if (_selectPrevCommandIndex < _history.size()) {
+                ++_selectPrevCommandIndex;
+            }
+            break;
+        }
+    }
+    if (_selectPrevCommandIndex == _history.size()) {
+        _input = "";
+    } else {
+        _input = _history[_selectPrevCommandIndex].getTokensString();
+    }
+    updateCanvas();
+
+    Window::processSpecialKey(specialKey);
+}
+
+void Terminal::updateCanvas() {
+    for (auto& line : _canvas) {
+        for (auto& pixel : line) {
+            pixel = ' ';
+        }
+    }
+
+    int x = 0;
+    int y = 0;
+
+    auto nextLine = [&x, &y]() {
+        ++y;
+        x = 0;
+    };
+    auto nextSymbol = [this, &nextLine, &x, &y]() {
+        ++x;
+        if (x == getWidth()) {
+            nextLine();
+        }
+    };
+    auto printString = [this, &nextSymbol, &nextLine, &x, &y]
+        (const std::string& str,
+         Effect effect = Effect::Reset,
+         ForgroundColor fg = ForgroundColor::Default,
+         BackgroundColor bg = BackgroundColor::Default) {
+        for (char c : str) {
+            if (c == '\n') {
+                nextLine();
+            } else {
+                _canvas[y][x] = {c, effect, fg, bg};
+                nextSymbol();   
+            }
+        }
+    };
+    auto printPrefix = [&printString](const std::string& prefix) {
+        printString(prefix, Effect::Bold, ForgroundColor::LightGreen);
+    };
+
+    for (const auto& command : _history) {
+        printPrefix(command.getPrefix());
+        for (const auto& token : command.getTokens()) {
+            printString(token);
+            nextSymbol();
+        }
+        nextLine();
+        printString(command.getOutput());
+
+        ++y;
+        x = 0;
+    }
+
+    printPrefix(getPrefix());
+    printString(_input);
+
+    _canvas[y][x] = {' ', Effect::Blink, ForgroundColor::Default, BackgroundColor::LightGray};
+}
+
+std::string Terminal::getPrefix() const {
+    return _name + " $ ";
+}
+
+Terminal::Command::Command(const std::string& prefix, const std::vector<std::string>& tokens, const std::string& output)
+    : _prefix(prefix), _tokens(tokens), _output(output) {}
+
+std::string Terminal::Command::getPrefix() const {
+    return _prefix;
+}
+std::string Terminal::Command::getOutput() const {
+    return _output;
+}
+std::vector<std::string> Terminal::Command::getTokens() const {
+    return _tokens;
+}
+std::string Terminal::Command::getTokensString() const {
+    std::string out = "";
+    for (int i = 0; i < _tokens.size(); ++i) {
+        out += _tokens[i];
+        if (i != _tokens.size() - 1) {
+            out += '\n';
+        }
+    }
+    return out;
+}
+
+std::string Terminal::processCommand(const std::vector<std::string>& tokens) {
     if (tokens[0] == "help") {
         return help(tokens);
     } else if (tokens[0] == "ls") {
@@ -123,7 +202,13 @@ std::string Terminal::processCommand() {
         getParent()->kill();
     }
 
-    return "  Command not found: " + command + ". Use \"help\"";
+    return "  Command not found: " + tokens[0] + ". Use \"help\"";
+}
+
+void Terminal::resize(Size size) {
+    _canvas = std::vector<std::vector<Pixel>>(getHeight() + 1, std::vector<Pixel>(getWidth() + 1, {' '}));
+    updateCanvas();
+    Window::resize(size);
 }
 
 std::string invalidArgument(const std::string& argument, const std::string& command) {
