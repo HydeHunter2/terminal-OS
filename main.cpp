@@ -96,6 +96,8 @@ int main() {
                     {32, MouseEvent::Type::Click},
                     {35, MouseEvent::Type::Unclick},
                     {64, MouseEvent::Type::Drag},
+                    {96, MouseEvent::Type::ScrollUp},
+                    {97, MouseEvent::Type::ScrollDown},
                 };
                 OS.processMouseEvent({{mouseX, mouseY}, keyToType[mouseData[0]]});
             }

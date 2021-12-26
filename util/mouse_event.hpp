@@ -7,7 +7,9 @@ struct MouseEvent {
     enum Type {
         Click,
         Unclick,
-        Drag
+        Drag,
+        ScrollUp,
+        ScrollDown
     };
 
     MouseEvent(Coordinates coordinates, Type eventType);
@@ -16,6 +18,8 @@ struct MouseEvent {
     bool isClick() const;
     bool isUnclick() const;
     bool isDrag() const;
+    bool isScrollUp() const;
+    bool isScrollDown() const;
 
   private:
     Coordinates _coords;

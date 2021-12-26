@@ -9,7 +9,7 @@
 #include "application.hpp"
 #include "paint.hpp"
 
-// todo: scroll
+// todo: move scroll logic to ScrollWindow class
 class Terminal : public Window {
   public:
     Terminal(const Rect& rect);
@@ -18,6 +18,7 @@ class Terminal : public Window {
     std::string getTitle() const;
 
     Pixel getPixel(const Coordinates& coords) const override;
+    void processMouseEvent(const MouseEvent& event) override;
     void processSpecialKey(SpecialKey specialKey) override;
     void processKey(char c) override;
     void resize(Size size) override;
@@ -42,6 +43,7 @@ class Terminal : public Window {
     std::string _name{ "hyde" };
     std::vector<Command> _history{};
     int _selectPrevCommandIndex;
+    int _canvasBeginIndex;
     std::vector<std::vector<Pixel>> _canvas;
     std::string _input{ "" };
 

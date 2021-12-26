@@ -14,3 +14,9 @@ bool MouseEvent::isUnclick() const {
 bool MouseEvent::isDrag() const {
     return _type == Drag;
 }
+bool MouseEvent::isScrollUp() const {
+    return _type == ScrollUp;
+}
+bool MouseEvent::isScrollDown() const {
+    return _type == ScrollDown;
+}

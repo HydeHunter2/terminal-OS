@@ -20,10 +20,7 @@ std::string Terminal::getTitle() const {
 }
 
 Pixel Terminal::getPixel(const Coordinates& coords) const {
-    int flatCoord = coords.y * getWidth() + coords.x;
-    int index = 0;
-
-    return _canvas[coords.y][coords.x];
+    return _canvas[_canvasBeginIndex + coords.y][coords.x];
 }
 
 std::string removeLeadingAndTrailingSpaces(const std::string& str) {
@@ -74,6 +71,17 @@ void Terminal::processKey(char c) {
 
     Window::processKey(c);
 }
+void Terminal::processMouseEvent(const MouseEvent& event) {
+    if (!isVisible() || !isCliked(event.getCoords())) {
+        return;
+    }
+
+    if (event.isScrollUp() && _canvasBeginIndex > 0) {
+        --_canvasBeginIndex;
+    } else if (event.isScrollDown() && _canvasBeginIndex < _canvas.size() - getHeight()) {
+        ++_canvasBeginIndex;
+    }
+}
 void Terminal::processSpecialKey(SpecialKey specialKey) {
     if (!isVisible() || !getParent()->isFront()) {
         return;
@@ -113,9 +121,14 @@ void Terminal::updateCanvas() {
     int x = 0;
     int y = 0;
 
-    auto nextLine = [&x, &y]() {
+    auto nextLine = [this, &x, &y]() {
         ++y;
         x = 0;
+
+        if (y >= _canvas.size()) {
+            _canvas.push_back(std::vector<Pixel>(_canvas.back().size(), {' '}));
+            ++_canvasBeginIndex;
+        }
     };
     auto nextSymbol = [this, &nextLine, &x, &y]() {
         ++x;
@@ -150,8 +163,7 @@ void Terminal::updateCanvas() {
         nextLine();
         printString(command.getOutput());
 
-        ++y;
-        x = 0;
+        nextLine();
     }
 
     printPrefix(getPrefix());
